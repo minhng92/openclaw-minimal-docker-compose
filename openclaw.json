@@ -1,0 +1,50 @@
+{
+  env: {  // applied only if missing environment in docker-compose.yml
+    OPENCLAW_GATEWAY_PASSWORD: "minhng.info",
+    OPENCLAW_GATEWAY_ALLOWED_ORIGIN_DOMAIN: "",
+    TELEGRAM_BOT_TOKEN: "XXX:XXX",
+    MODEL_PROVIDER: "openai",
+    MODEL_PROVIDER_BASE_URL: "https://api.openai.com",
+    MODEL_PROVIDER_API_KEY: "sk-XXX",
+    MODEL_PROVIDER_API_ADAPTER: "openai-completions", // openai-completions | openai-responses | anthropic-messages | google-generative-ai
+    MODEL_PROVIDER_MODEL_ID: "gpt-5.4",
+  },
+  gateway: {  // https://docs.openclaw.ai/gateway/configuration-reference#gateway
+    mode: "local",
+    controlUi: {
+      enabled: true,
+      allowedOrigins: ["http://localhost:18789", "${OPENCLAW_GATEWAY_ALLOWED_ORIGIN_DOMAIN}"],
+    },
+    auth: { 
+      mode: "password",
+      password: "${OPENCLAW_GATEWAY_PASSWORD}", 
+    },
+  },
+  channels: {
+    telegram: {
+      enabled: true,
+      botToken: "${TELEGRAM_BOT_TOKEN}",
+      dmPolicy: "pairing",
+      groups: { "*": { requireMention: true } },
+    },
+  },
+  agents: {
+    defaults: { model: { primary: "${MODEL_PROVIDER}/${MODEL_PROVIDER_MODEL_ID}" } },
+  },
+  models: {
+    mode: "merge",
+    providers: {
+      "${MODEL_PROVIDER}": {
+        baseUrl: "${MODEL_PROVIDER_BASE_URL}",
+        apiKey: "${MODEL_PROVIDER_API_KEY}",
+        api: "${MODEL_PROVIDER_API_ADAPTER}", // openai-completions | openai-responses | anthropic-messages | google-generative-ai
+        models: [
+          {
+            id: "${MODEL_PROVIDER_MODEL_ID}",
+            name: "${MODEL_PROVIDER}/${MODEL_PROVIDER_MODEL_ID}",
+          },
+        ],
+      },
+    },
+  },
+}
