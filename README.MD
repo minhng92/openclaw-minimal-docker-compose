@@ -1,40 +1,51 @@
-# Installing OpenClaw with one command (Supports multiple OpenClaw instances on one server).
+# OpenClaw — Minimal Docker Compose
+
+> Deploy one or more [OpenClaw](https://openclaw.ai) instances on a single server with a single command.
+
+---
 
 ## I. Quick Installation
 
-Install [docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) yourself, then run the following to set up an OpenClaw instance @ `localhost:18789` (default gateway password: `minhng.info`):
+Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/), then run:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-one
 ```
 
-And/or run the following to set up another OpenClaw instance @ `localhost:18889`:
+This creates an OpenClaw instance at **`http://localhost:18789`** with the default gateway password `minhng.info`.
+
+To spin up a **second instance** on different ports:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-two --port 18889 --port-ws 18890
 ```
 
-Arguments:
-* `--destination`: Install folder (e.g., **openclaw-one**)
-* `--port`: Gateway HTTP port (e.g., **18789**)
-* `--port-ws`: Gateway WebSocket port (e.g., **18790**)
-* `--password`: Gateway login password. Optional, defaults to `minhng.info`.
-* `--openai-api-key`: OpenAI API key (written to **agent.env**). Optional.
-* `--telegram-bot-token`: Telegram bot token (written to **agent.env**). Optional.
+### Arguments
 
-Example with a custom gateway password:
+| Flag | Description | Default |
+|---|---|---|
+| `--destination` | Installation directory | *(required)* |
+| `--port` | Gateway HTTP port | `18789` |
+| `--port-ws` | Gateway WebSocket port | `18790` |
+| `--password` | Gateway login password | `minhng.info` |
+| `--openai-api-key` | OpenAI API key (written to `agent.env`) | — |
+| `--telegram-bot-token` | Telegram bot token (written to `agent.env`) | — |
+
+### Examples
+
+**Custom gateway password:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-one --password mySecret123
 ```
 
-Example with a gateway password + OpenAI key:
+**Password + OpenAI key:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-one --password mySecret123 --openai-api-key sk-proj-abc123XYZ
 ```
 
-Example with all options (custom ports + password + OpenAI + Telegram):
+**All options (custom ports + password + OpenAI + Telegram):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- \
@@ -46,41 +57,51 @@ curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-co
   --telegram-bot-token XXX:XXX
 ```
 
-If `curl` is not found, install it:
+> **Note:** If `curl` is not installed, run `sudo apt-get install curl` (Debian/Ubuntu) or `sudo yum install curl` (RHEL/CentOS).
 
-```bash
-sudo apt-get install curl
-# or
-sudo yum install curl
-```
+---
 
 ## II. Manual Installation
 
 ```bash
 git clone git@github.com:minhng92/openclaw-minimal-docker-compose.git
 cd openclaw-minimal-docker-compose
-# cp .env agent.env
-# nano agent.env        # configure domain, model provider, telegram
+# touch agent.env
+# nano agent.env   # set OPENCLAW_GATEWAY_PASSWORD, model provider, Telegram token, etc.
 docker-compose up -d
 ```
 
-`agent.env` is for deployment:
-- Overrides the default `.env`
-- Ignored by `.gitignore`
+### Configuration files
 
-If you want to start the server with a different port, change 18789 and 18790 (before colon character) to another value in docker-compose.yml:
+| File | Purpose |
+|---|---|
+| `.env` | Default environment variables (tracked by Git) |
+| `agent.env` | **Deployment overrides** — takes precedence over `.env`, ignored by `.gitignore` |
+| `openclaw.json` | OpenClaw gateway & agent configuration ([reference](https://docs.openclaw.ai/gateway/configuration-reference)) |
+
+To change the **gateway password** for a manual install, set the variable in `agent.env`:
+
+```bash
+OPENCLAW_GATEWAY_PASSWORD=mySecret123
+```
+
+To expose the gateway on **custom ports**, edit the host-side values (before the colon) in `docker-compose.yml`:
 
 ```yml
     ports:
-      - "18789:18789"
-      - "18790:18790"
+      - "YOUR_HTTP_PORT:18789"
+      - "YOUR_WS_PORT:18790"
 ```
 
-### Paring on the first connection
+---
 
-Open `localhost:18789` and login with password (default: `minhng.info`). It shows _paring required_.
+## III. Device Pairing (First Connection)
 
-We have to approve the pending request to access OpenClaw Control UI: [https://docs.openclaw.ai/web/control-ui#device-pairing-first-connection](https://docs.openclaw.ai/web/control-ui#device-pairing-first-connection)
+Open `http://localhost:18789` and log in with your gateway password (default: `minhng.info`).
+On the first connection the UI will show **_pairing required_**.
+
+Approve the pending device request from the terminal
+(see also: [OpenClaw docs — Device Pairing](https://docs.openclaw.ai/web/control-ui#device-pairing-first-connection)):
 
 ```bash
 docker-compose exec openclaw-gateway bash -c 'openclaw devices list'
@@ -93,32 +114,62 @@ docker-compose exec openclaw-gateway bash -c 'openclaw devices list'
 #│                                      │ ce889e9b591b8300bcebcad37cb68f01 │          │ operator.approvals, operator.pairing               │            │        │        │
 #└──────────────────────────────────────┴──────────────────────────────────┴──────────┴────────────────────────────────────────────────────┴────────────┴────────┴────────┘
 # ...
-
 docker-compose exec openclaw-gateway bash -c 'openclaw devices approve <REQUEST-ID>'
-# in my case:
+# example:
 docker-compose exec openclaw-gateway bash -c 'openclaw devices approve 9c4b3ec7-73d1-4f02-9097-636e44e8c611'
-# ...
 # Approved d45c8d9425868ef6561aa005daa28f50ce889e9b591b8300bcebcad37cb68f01 (9c4b3ec7-73d1-4f02-9097-636e44e8c611)
 ```
 
-Then log in again:
+After approval, log in again to access the Control UI:
 
 <p>
 <img src="screenshots/1-OpenClaw-Control.jpg" width="100%">
 </p>
 
+---
 
+## IV. Grant Full Execution Permission
 
+Edit `_data/exec-approvals.json` and set the following (the file uses [JSON5](https://json5.org/) syntax):
 
-Full permission: _data/exec-approvals.json
-
-```json
+```json5
+{
+  // ...
   "defaults": {
     "security": "full",
-    "ask": "off",
-  },
+    "ask": "off"
+  }
+  // ...
+}
 ```
 
-Base URL
-- OpenAI => https://api.openai.com
-- DeepSeek => https://api.deepseek.com
+---
+
+## V. Managing the Instance
+
+**Stop** the instance:
+
+```bash
+docker-compose down
+```
+
+**Restart** the instance:
+
+```bash
+docker-compose restart
+```
+
+**Remove** an instance completely:
+
+```bash
+docker-compose down -v
+cd .. && rm -rf <destination-folder>
+```
+
+---
+
+## ☕ Buy Me a Coffee
+
+If you find this project helpful, consider buying me a coffee to support my work!
+
+<a href="https://buymeacoffee.com/minhng.info" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
