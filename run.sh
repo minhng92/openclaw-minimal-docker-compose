@@ -92,6 +92,8 @@ fi
 # ---------------------------------------------------------------------------
 git clone --depth=1 https://github.com/minhng92/openclaw-minimal-docker-compose "$DESTINATION"
 rm -rf "$DESTINATION/.git"
+rm -f "$DESTINATION/LICENSE" "$DESTINATION/README.MD" "$DESTINATION/run.sh"
+rm -rf "$DESTINATION/screenshots"
 
 # Change ownership / permissions
 sudo chown -R "$USER:$USER" "$DESTINATION"
