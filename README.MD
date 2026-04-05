@@ -49,18 +49,6 @@ curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-co
 curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- --destination openclaw-one --password mySecret123 --model-api-key sk-proj-abc123XYZ
 ```
 
-**Custom model provider (e.g. Anthropic):**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- \
-  --destination openclaw-one \
-  --model-provider deepseek \
-  --model-base-url https://api.deepseek.com \
-  --model-api-key sk-abc123XYZ \
-  --model-api-adapter openai-completions \
-  --model-id deepseek-chat
-```
-
 **All options (custom ports + password + model + Telegram):**
 
 ```bash
@@ -71,6 +59,18 @@ curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-co
   --password mySecret123 \
   --model-api-key sk-proj-abc123XYZ \
   --telegram-bot-token XXX:XXX
+```
+
+**Custom model provider (e.g. DeepSeek):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- \
+  --destination openclaw-one \
+  --model-provider deepseek \
+  --model-base-url https://api.deepseek.com \
+  --model-api-key sk-abc123XYZ \
+  --model-api-adapter openai-completions \
+  --model-id deepseek-chat
 ```
 
 > **Note:** If `curl` is not installed, run `sudo apt-get install curl` (Debian/Ubuntu) or `sudo yum install curl` (RHEL/CentOS).
@@ -160,7 +160,7 @@ docker-compose exec openclaw-gateway bash -c 'openclaw pairing approve telegram 
 
 ## IV. Grant Full Execution Permission
 
-Edit `_data/exec-approvals.json` and set the following (the file uses [JSON5](https://json5.org/) syntax):
+Edit `_data/exec-approvals.json` and set the following:
 
 ```json
 {
