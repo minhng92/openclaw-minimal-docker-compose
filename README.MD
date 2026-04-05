@@ -9,7 +9,7 @@
 Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/), then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-one
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- --destination openclaw-one
 ```
 
 This creates an OpenClaw instance at **`http://localhost:18789`** with the default gateway password `minhng.info`.
@@ -17,7 +17,7 @@ This creates an OpenClaw instance at **`http://localhost:18789`** with the defau
 To spin up a **second instance** on different ports:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-two --port 18889 --port-ws 18890
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- --destination openclaw-two --port 18889 --port-ws 18890
 ```
 
 ### Arguments
@@ -28,7 +28,11 @@ curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-co
 | `--port` | Gateway HTTP port | `18789` |
 | `--port-ws` | Gateway WebSocket port | `18790` |
 | `--password` | Gateway login password | `minhng.info` |
-| `--openai-api-key` | OpenAI API key (written to `agent.env`) | — |
+| `--model-provider` | Model provider name | `openai` |
+| `--model-base-url` | Model provider base URL | `https://api.openai.com` |
+| `--model-api-key` | Model provider API key (written to `agent.env`) | — |
+| `--model-api-adapter` | Model API adapter | `openai-completions` |
+| `--model-id` | Model ID | `gpt-5.4` |
 | `--telegram-bot-token` | Telegram bot token (written to `agent.env`) | — |
 
 ### Examples
@@ -36,24 +40,36 @@ curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-co
 **Custom gateway password:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-one --password mySecret123
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- --destination openclaw-one --password mySecret123
 ```
 
-**Password + OpenAI key:**
+**Password + model API key:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- --destination openclaw-one --password mySecret123 --openai-api-key sk-proj-abc123XYZ
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- --destination openclaw-one --password mySecret123 --model-api-key sk-proj-abc123XYZ
 ```
 
-**All options (custom ports + password + OpenAI + Telegram):**
+**Custom model provider (e.g. Anthropic):**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/main/run.sh | bash -s -- \
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- \
+  --destination openclaw-one \
+  --model-provider deepseek \
+  --model-base-url https://api.deepseek.com \
+  --model-api-key sk-abc123XYZ \
+  --model-api-adapter openai-completions \
+  --model-id deepseek-chat
+```
+
+**All options (custom ports + password + model + Telegram):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/minhng92/openclaw-minimal-docker-compose/master/run.sh | bash -s -- \
   --destination openclaw-one \
   --port 18789 \
   --port-ws 18790 \
   --password mySecret123 \
-  --openai-api-key sk-proj-abc123XYZ \
+  --model-api-key sk-proj-abc123XYZ \
   --telegram-bot-token XXX:XXX
 ```
 
@@ -126,13 +142,27 @@ After approval, log in again to access the Control UI:
 <img src="screenshots/1-OpenClaw-Control.jpg" width="100%">
 </p>
 
+### Telegram Bot Pairing
+
+Requires a Telegram bot token already configured (via `.env` or `agent.env`).
+
+Start a chat with your bot on Telegram. The bot will reply with a **pairing code**.
+Then approve it from the terminal:
+
+```bash
+docker-compose exec openclaw-gateway bash -c 'openclaw pairing approve telegram <PAIRING-CODE>'
+# example:
+docker-compose exec openclaw-gateway bash -c 'openclaw pairing approve telegram NFXA5QFG'
+# Approved telegram sender XXXXXXXXXX.
+```
+
 ---
 
 ## IV. Grant Full Execution Permission
 
 Edit `_data/exec-approvals.json` and set the following (the file uses [JSON5](https://json5.org/) syntax):
 
-```json5
+```json
 {
   // ...
   "defaults": {
@@ -146,6 +176,18 @@ Edit `_data/exec-approvals.json` and set the following (the file uses [JSON5](ht
 ---
 
 ## V. Managing the Instance
+
+Apply modified env:
+
+```bash
+docker-compose down && docker-compose up -d
+```
+
+Check logging:
+
+```bash
+docker-compose logs --tail 50
+```
 
 **Stop** the instance:
 
@@ -164,6 +206,17 @@ docker-compose restart
 ```bash
 docker-compose down -v
 cd .. && rm -rf <destination-folder>
+```
+
+**Backup and Restore** the instance easily:
+
+```bash
+# backup
+sudo zip -r openclaw-minimal.zip  openclaw-minimal
+# restore
+sudo unzip openclaw-minimal.zip
+cd openclaw-minimal
+docker-compose up -d
 ```
 
 ---

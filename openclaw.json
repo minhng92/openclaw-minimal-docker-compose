@@ -8,6 +8,26 @@
     MODEL_PROVIDER_API_KEY: "sk-XXX",
     MODEL_PROVIDER_API_ADAPTER: "openai-completions", // openai-completions | openai-responses | anthropic-messages | google-generative-ai
     MODEL_PROVIDER_MODEL_ID: "gpt-5.4",
+    // built-in model providers
+    OPENAI_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    ANTHROPIC_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    GEMINI_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    OPENROUTER_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    OPENCLAW_LIVE_OPENAI_KEY: "${MODEL_PROVIDER_API_KEY}",
+    OPENCLAW_LIVE_ANTHROPIC_KEY: "${MODEL_PROVIDER_API_KEY}",
+    OPENCLAW_LIVE_GEMINI_KEY: "${MODEL_PROVIDER_API_KEY}",
+    OPENAI_API_KEY_1: "${MODEL_PROVIDER_API_KEY}",
+    ANTHROPIC_API_KEY_1: "${MODEL_PROVIDER_API_KEY}",
+    GEMINI_API_KEY_1: "${MODEL_PROVIDER_API_KEY}",
+    GOOGLE_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    OPENAI_API_KEYS: "${MODEL_PROVIDER_API_KEY}",
+    ANTHROPIC_API_KEYS: "${MODEL_PROVIDER_API_KEY}",
+    GEMINI_API_KEYS: "${MODEL_PROVIDER_API_KEY}",
+    // Optional additional providers
+    ZAI_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    AI_GATEWAY_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    MINIMAX_API_KEY: "${MODEL_PROVIDER_API_KEY}",
+    SYNTHETIC_API_KEY: "${MODEL_PROVIDER_API_KEY}",
   },
   gateway: {  // https://docs.openclaw.ai/gateway/configuration-reference#gateway
     mode: "local",

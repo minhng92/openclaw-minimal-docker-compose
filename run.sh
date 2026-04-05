@@ -6,7 +6,9 @@ set -euo pipefail
 # Usage:
 #   ./run.sh --destination <path> [--port <gateway_port>] [--port-ws <ws_port>]
 #            [--password <gateway_password>]
-#            [--openai-api-key <key>]
+#            [--model-provider <provider>] [--model-base-url <url>]
+#            [--model-api-key <key>] [--model-api-adapter <adapter>]
+#            [--model-id <model_id>]
 #            [--telegram-bot-token <token>]
 # ---------------------------------------------------------------------------
 
@@ -14,8 +16,12 @@ DESTINATION=""
 PORT="18789"
 PORT_WS="18790"
 PASSWORD=""
-OPENAI_API_KEY=""
-TELEGRAM_BOT_TOKEN=""
+MODEL_PROVIDER="openai"
+MODEL_BASE_URL="https://api.openai.com"
+MODEL_API_KEY="sk-XXX"
+MODEL_API_ADAPTER="openai-completions"
+MODEL_ID="gpt-5.4"
+TELEGRAM_BOT_TOKEN="XXX:XXX"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -35,8 +41,24 @@ while [[ $# -gt 0 ]]; do
       PASSWORD="$2"
       shift 2
       ;;
-    --openai-api-key)
-      OPENAI_API_KEY="$2"
+    --model-provider)
+      MODEL_PROVIDER="$2"
+      shift 2
+      ;;
+    --model-base-url)
+      MODEL_BASE_URL="$2"
+      shift 2
+      ;;
+    --model-api-key)
+      MODEL_API_KEY="$2"
+      shift 2
+      ;;
+    --model-api-adapter)
+      MODEL_API_ADAPTER="$2"
+      shift 2
+      ;;
+    --model-id)
+      MODEL_ID="$2"
       shift 2
       ;;
     --telegram-bot-token)
@@ -46,7 +68,10 @@ while [[ $# -gt 0 ]]; do
     *)
       echo "Error: Unknown option: $1" >&2
       echo "Usage: $0 --destination <path> [--port <gateway_port>] [--port-ws <ws_port>]" >&2
-      echo "          [--password <gateway_password>] [--openai-api-key <key>] [--telegram-bot-token <token>]" >&2
+      echo "          [--password <gateway_password>]" >&2
+      echo "          [--model-provider <provider>] [--model-base-url <url>]" >&2
+      echo "          [--model-api-key <key>] [--model-api-adapter <adapter>] [--model-id <model_id>]" >&2
+      echo "          [--telegram-bot-token <token>]" >&2
       exit 1
       ;;
   esac
@@ -55,7 +80,10 @@ done
 if [[ -z "$DESTINATION" ]]; then
   echo "Error: --destination is required" >&2
   echo "Usage: $0 --destination <path> [--port <gateway_port>] [--port-ws <ws_port>]" >&2
-  echo "          [--password <gateway_password>] [--openai-api-key <key>] [--telegram-bot-token <token>]" >&2
+  echo "          [--password <gateway_password>]" >&2
+  echo "          [--model-provider <provider>] [--model-base-url <url>]" >&2
+  echo "          [--model-api-key <key>] [--model-api-adapter <adapter>] [--model-id <model_id>]" >&2
+  echo "          [--telegram-bot-token <token>]" >&2
   exit 1
 fi
 
@@ -111,19 +139,19 @@ AGENT_ENV="$DESTINATION/agent.env"
   fi
   echo ""
   echo "# -----------------------------------------------------------------------------"
-  echo "# Model provider API keys (set at least one)"
+  echo "# Model provider"
   echo "# -----------------------------------------------------------------------------"
-  if [[ -n "$OPENAI_API_KEY" ]]; then
-    echo "MODEL_PROVIDER=\"openai\""
-    echo "MODEL_PROVIDER_BASE_URL=\"https://api.openai.com\""
-    echo "MODEL_PROVIDER_API_KEY=\"$OPENAI_API_KEY\""
-    echo "MODEL_PROVIDER_API_ADAPTER=\"openai-completions\"   # openai-completions | openai-responses | anthropic-messages | google-generative-ai"
-    echo "MODEL_PROVIDER_MODEL_ID=\"gpt-5.4\""
+  if [[ -n "$MODEL_API_KEY" ]]; then
+    echo "MODEL_PROVIDER=\"$MODEL_PROVIDER\""
+    echo "MODEL_PROVIDER_BASE_URL=\"$MODEL_BASE_URL\""
+    echo "MODEL_PROVIDER_API_KEY=\"$MODEL_API_KEY\""
+    echo "MODEL_PROVIDER_API_ADAPTER=\"$MODEL_API_ADAPTER\"   # openai-completions | openai-responses | anthropic-messages | google-generative-ai"
+    echo "MODEL_PROVIDER_MODEL_ID=\"$MODEL_ID\""
   else
     echo "# MODEL_PROVIDER=\"openai\""
     echo "# MODEL_PROVIDER_BASE_URL=\"https://api.openai.com\""
     echo "# MODEL_PROVIDER_API_KEY=\"sk-XXX\""
-    echo "# MODEL_PROVIDER_API_ADAPTER=\"openai-completions\""
+    echo "# MODEL_PROVIDER_API_ADAPTER=\"openai-completions\"   # openai-completions | openai-responses | anthropic-messages | google-generative-ai"
     echo "# MODEL_PROVIDER_MODEL_ID=\"gpt-5.4\""
   fi
   echo ""
